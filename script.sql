@@ -151,8 +151,35 @@ CREATE TABLE tb_conta (
 	CONSTRAINT fk_cliente FOREIGN KEY (cod_cliente) REFERENCES tb_cliente(cod_cliente),
 	CONSTRAINT fk_tipo_conta FOREIGN KEY (cod_tipo_conta) REFERENCES tb_tipo_conta(cod_tipo_conta)
 );
+SELECT * FROM tb_conta;
 ---------------------------------------------------------------------------
+--fn criar conta
+DROP FUNCTION IF EXISTS fn_abrir_conta;
+CREATE OR REPLACE FUNCTION fn_abrir_conta (IN p_cod_cli INT, IN p_saldo NUMERIC(10, 2), IN p_cod_tipo_conta INT) RETURNS BOOLEAN
+LANGUAGE plpgsql
+AS $$
+BEGIN
+	INSERT INTO tb_conta (cod_cliente, saldo, cod_tipo_conta) VALUES ($1, $2, $3);
+	RETURN TRUE;
+EXCEPTION WHEN OTHERS THEN
+	RETURN FALSE;
+END;
+$$
 
+DO $$
+DECLARE
+	cod_cli INT := 1;
+	saldo NUMERIC (10, 2) := 500;
+	cod_tipo_conta INT := 1;
+	resultado BOOLEAN;
+BEGIN
+	SELECT fn_abrir_conta (cod_cli, saldo, cod_tipo_conta) INTO resultado;
+	RAISE NOTICE '%', format('Conta com saldo R$%s%s foi aberta', saldo, CASE WHEN resultado THEN '' ELSE ' não' END);
+	saldo := 1000;
+	SELECT fn_abrir_conta (cod_cli, saldo, cod_tipo_conta) INTO resultado;
+	RAISE NOTICE '%'
+END;
+$$
 
 
 
